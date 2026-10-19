@@ -19,15 +19,21 @@ function ScratchDate({ urdu }: { urdu: boolean }) {
     useEffect(() => { const el = canvas.current; if (!el) return; const ctx = el.getContext('2d', { willReadFrequently: true }); if (!ctx) return; const dpr = window.devicePixelRatio || 1; el.width = 260 * dpr; el.height = 240 * dpr; ctx.scale(dpr, dpr); const gradient = ctx.createRadialGradient(100, 80, 10, 130, 120, 200); gradient.addColorStop(0, '#f9d3dd'); gradient.addColorStop(.45, '#e89aaf'); gradient.addColorStop(1, '#a83a5c'); ctx.fillStyle = gradient; ctx.fillRect(0, 0, 260, 240); for (let i = 0; i < 15000; i++) { ctx.fillStyle = i % 3 ? 'rgba(255,238,243,.55)' : 'rgba(150,40,80,.35)'; ctx.fillRect(Math.random() * 260, Math.random() * 240, 1, 1); } ctx.globalCompositeOperation = 'destination-out'; }, []);
     useEffect(() => { if (!revealed) return; setConfetti(true); const t = setTimeout(() => setConfetti(false), 7000); return () => clearTimeout(t); }, [revealed]);
     function scratch(e: PointerEvent<HTMLCanvasElement>) { if (!drawing.current || revealed) return; const el = canvas.current, ctx = el?.getContext('2d'); if (!el || !ctx) return; const rect = el.getBoundingClientRect(), point = { x: (e.clientX - rect.left) * 260 / rect.width, y: (e.clientY - rect.top) * 240 / rect.height }; ctx.lineWidth = 38; ctx.lineCap = 'round'; ctx.beginPath(); if (last.current) ctx.moveTo(last.current.x, last.current.y); else ctx.moveTo(point.x, point.y); ctx.lineTo(point.x, point.y); ctx.stroke(); last.current = point; strokes.current++; if (strokes.current % 6 === 0) { const pixels = ctx.getImageData(0, 0, el.width, el.height).data; let clear = 0, count = 0; for (let i = 3; i < pixels.length; i += 32) { count++; if (pixels[i] < 100) clear++; } if (clear / count > .4) setRevealed(true); } }
-    return <section className="scratch-section" data-reveal>{confetti && <ConfettiBurst />}<h2>{revealed ? (urdu ? 'ہماری نئی زندگی کا آغاز' : 'Our forever begins') : (urdu ? 'تاریخ جاننے کے لیے کھرچیں' : 'Scratch to Reveal')}</h2><Ornament /><svg width="0" height="0" aria-hidden="true"><defs><clipPath id="heart-clip" clipPathUnits="objectBoundingBox"><path d="M.5,.96C.5,.96 .06,.70 .06,.36C.06,.18 .20,.06 .32,.06C.42,.06 .48,.14 .5,.24C.52,.14 .58,.06 .68,.06C.80,.06 .94,.18 .94,.36C.94,.70 .5,.96 .5,.96Z" /></clipPath></defs></svg><div className={`scratch-heart ${revealed ? 'revealed' : ''}`}><div className="revealed-date"><em>{urdu ? 'آپ مدعو ہیں!' : "You’re Invited!"}</em><strong>{w.dateText}</strong><span>{w.day}</span><span>{w.time}</span><b>♥</b></div><canvas ref={canvas} aria-label="Scratch to reveal wedding date" onPointerDown={e => { drawing.current = true; last.current = null; e.currentTarget.setPointerCapture(e.pointerId); scratch(e); }} onPointerMove={scratch} onPointerUp={() => { drawing.current = false; last.current = null; }} onPointerCancel={() => { drawing.current = false; }} /></div><button className="reveal-keyboard" onClick={() => setRevealed(true)}>{revealed ? (urdu ? 'ہم آپ کے منتظر ہیں' : 'We look forward to seeing you') : (urdu ? 'یا تاریخ دیکھنے کے لیے دبائیں' : 'Or tap here to reveal')}</button><SaveDate urdu={urdu} /></section>;
+    return <section className="scratch-section" data-reveal>{confetti && <ConfettiBurst />}<h2>{revealed ? (urdu ? 'ہماری نئی زندگی کا آغاز' : 'Our forever begins') : (urdu ? 'تاریخ جاننے کے لیے کھرچیں' : 'Scratch to Reveal')}</h2><Ornament /><svg width="0" height="0" aria-hidden="true"><defs><clipPath id="heart-clip" clipPathUnits="objectBoundingBox"><path d="M.5,.96C.5,.96 .06,.70 .06,.36C.06,.18 .20,.06 .32,.06C.42,.06 .48,.14 .5,.24C.52,.14 .58,.06 .68,.06C.80,.06 .94,.18 .94,.36C.94,.70 .5,.96 .5,.96Z" /></clipPath></defs></svg><div className={`scratch-heart ${revealed ? 'revealed' : ''}`}><div className="revealed-date"><svg className="heart-frame" viewBox="0 0 260 240" aria-hidden="true"><path d="M130,230.4C130,230.4 15.6,168 15.6,86.4C15.6,43.2 52,14.4 83.2,14.4C109.2,14.4 124.8,33.6 130,57.6C135.2,33.6 150.8,14.4 176.8,14.4C208,14.4 244.4,43.2 244.4,86.4C244.4,168 130,230.4 130,230.4Z" fill="none" stroke="#b76e7e" strokeWidth="3"/></svg><em>{urdu ? 'آپ مدعو ہیں!' : "You’re Invited!"}</em><strong>{w.dateText}</strong><span>{w.day}</span><span>{w.time}</span></div><canvas ref={canvas} aria-label="Scratch to reveal wedding date" onPointerDown={e => { drawing.current = true; last.current = null; e.currentTarget.setPointerCapture(e.pointerId); scratch(e); }} onPointerMove={scratch} onPointerUp={() => { drawing.current = false; last.current = null; }} onPointerCancel={() => { drawing.current = false; }} /></div><button className="reveal-keyboard" onClick={() => setRevealed(true)}>{revealed ? (urdu ? 'ہم آپ کے منتظر ہیں' : 'We look forward to seeing you') : (urdu ? 'یا تاریخ دیکھنے کے لیے دبائیں' : 'Or tap here to reveal')}</button><SaveDate urdu={urdu} /></section>;
 }
 function SaveDate({ urdu }: { urdu: boolean }) {
     const [open, setOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement | null>(null);
     function stamp(d: Date) { return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'; }
+    function yahooStamp(d: Date) { return d.toISOString().replace(/[-:]/g, '').split('.')[0]; }
     const start = new Date(w.date); const end = new Date(start.getTime() + 4 * 3600 * 1000);
-    const google = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${w.groom} & ${w.bride} — Wedding`)}&dates=${stamp(start)}/${stamp(end)}&location=${encodeURIComponent(w.venue + ', ' + w.address)}`;
+    const title = `${w.groom} & ${w.bride} — Wedding`; const loc = `${w.venue}, ${w.address}`;
+    const google = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${stamp(start)}/${stamp(end)}&details=${encodeURIComponent('Wedding ceremony')}&location=${encodeURIComponent(loc)}`;
+    const outlook = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(title)}&startdt=${start.toISOString()}&enddt=${end.toISOString()}&location=${encodeURIComponent(loc)}&body=${encodeURIComponent('Wedding ceremony')}`;
+    const yahoo = `https://calendar.yahoo.com/?v=60&title=${encodeURIComponent(title)}&st=${yahooStamp(start)}&et=${yahooStamp(end)}&in_loc=${encodeURIComponent(loc)}&desc=${encodeURIComponent('Wedding ceremony')}`;
     function download() { const content = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Wedding Invitation//EN', 'BEGIN:VEVENT', `UID:wedding-invitation-${stamp(start)}`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`, `SUMMARY:${w.groom} & ${w.bride} Wedding`, `LOCATION:${w.venue}, ${w.address}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n'); const url = URL.createObjectURL(new Blob([content], { type: 'text/calendar;charset=utf-8' })); const a = document.createElement('a'); a.href = url; a.download = 'wedding-save-the-date.ics'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setOpen(false); }
-    return <div className="save-date"><button className="gold-button" onClick={() => setOpen(!open)} aria-expanded={open}>♧ {urdu ? 'تاریخ محفوظ کریں' : 'SAVE THE DATE'}</button>{open && <div className="calendar-menu"><a href={google} target="_blank" rel="noreferrer">Google Calendar ↗</a><button onClick={download}>Apple / Outlook Calendar ↓</button></div>}</div>;
+    useEffect(() => { if (!open) return; function close(e: MouseEvent) { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false); } document.addEventListener('pointerdown', close); return () => document.removeEventListener('pointerdown', close); }, [open]);
+    return <div className="save-date" ref={menuRef}><button className="gold-button" onClick={() => setOpen(!open)} aria-expanded={open} aria-haspopup="menu">♧ {urdu ? 'تاریخ محفوظ کریں' : 'SAVE THE DATE'}</button>{open && <div className="calendar-menu" role="menu"><a role="menuitem" href={google} target="_blank" rel="noreferrer">Google Calendar</a><a role="menuitem" href={outlook} target="_blank" rel="noreferrer">Office 365 / Outlook</a><a role="menuitem" href={yahoo} target="_blank" rel="noreferrer">Yahoo Calendar</a><button role="menuitem" onClick={download}>Apple Calendar</button><button role="menuitem" onClick={download}>Other (.ics file)</button><span className="menu-foot">{urdu ? 'اپنے کیلنڈر میں یہ تقریب شامل کریں' : 'Add this event to your calendar'}</span></div>}</div>;
 }
 function Countdown({ urdu }: { urdu: boolean }) { const [values, setValues] = useState([0, 0, 0, 0]); useEffect(() => { function tick() { const d = Math.max(0, new Date(w.date).getTime() - Date.now()); setValues([Math.floor(d / 86400000), Math.floor(d / 3600000) % 24, Math.floor(d / 60000) % 60, Math.floor(d / 1000) % 60]); } tick(); const id = setInterval(tick, 1000); return () => clearInterval(id); }, []); return <div className="countdown">{values.map((value, i) => <div key={i}><strong>{String(value).padStart(2, '0')}</strong><span>{(urdu ? ['دن', 'گھنٹے', 'منٹ', 'سیکنڈ'] : ['DAYS', 'HOURS', 'MINUTES', 'SECONDS'])[i]}</span></div>)}</div>; }
 function RsvpForm({ urdu }: { urdu: boolean }) {
@@ -215,6 +221,23 @@ export default function RoyalInvitation() {
             if (!next) au.play().catch(() => { /* ignored */ });
         }
     }
+    function smoothTo(id: string) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const root = document.documentElement;
+        const prev = root.style.scrollBehavior;
+        root.style.scrollBehavior = 'auto';
+        const from = window.scrollY, to = el.getBoundingClientRect().top + from, dist = to - from, dur = 1500;
+        let t0: number | null = null;
+        function step(ts: number) {
+            if (t0 === null) t0 = ts;
+            const p = Math.min((ts - t0) / dur, 1);
+            const e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+            window.scrollTo(0, from + dist * e);
+            if (p < 1) requestAnimationFrame(step); else root.style.scrollBehavior = prev;
+        }
+        requestAnimationFrame(step);
+    }
     const t = (en: string, ur: string) => urdu ? ur : en;
     return <div className={`page-shell ${urdu ? 'urdu' : ''} ${!showNames ? 'is-locked' : ''}`} lang={urdu ? 'ur' : 'en'}>
         {!preloaderDismissed && (
@@ -241,7 +264,7 @@ export default function RoyalInvitation() {
             {!started && ready && <button className="opening-hit-area" onClick={start} aria-label={t('Tap to open your invitation', 'دعوت نامہ کھولیں')} />}
             <div className="hero-shade" />
             <div className="couple-heading"><span className="small-heart">♥</span><p className="hero-intro">{t(w.heroIntro, w.heroIntroUrdu)}</p><div className="heart-rule">— ♥ —</div><h1>{urdu ? w.groomUrdu : w.groom}<small>{t(w.groomFamily, w.groomFamilyUrdu)}</small></h1><span className="amp">{urdu ? 'اور' : 'with'}</span><h1>{urdu ? w.brideUrdu : w.bride}<small>{t(w.brideFamily, w.brideFamilyUrdu)}</small></h1></div>
-            {showNames && <a className="scroll-cue" href="#welcome">{t('SCROLL', 'مزید دیکھیں')}<span>⌄</span></a>}
+            {showNames && <a className="scroll-cue" href="#welcome" onClick={e => { e.preventDefault(); smoothTo('welcome'); }}>{t('SCROLL', 'مزید دیکھیں')}<span>⌄</span></a>}
         </section>
         {showNames && (
             <>
