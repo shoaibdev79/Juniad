@@ -53,10 +53,9 @@ File save karein, dobara build/deploy karein — bas.
   (same naam rakhein).
 - Envelope video: `public/media/royal-opening.mp4` apni video se
   replace kar sakte hain (optional).
-- Background song: `public/media/wedding-song.mp3` — ye maine khud
-  compose kiya hua original music-box loop hai (koi copyright issue
-  nahi). Chahein to apna koi MP3 isi naam se replace kar dein;
-  wo khud hi loop par chalta rahega.
+- Background song: `public/media/wedding-song.mp3` — aapka apna gana,
+  jo "Tap to open" dabane par bajna shuru hota hai aur loop par chalta
+  rehta hai. Koi aur MP3 chahiye to isi naam se replace kar dein.
 
 ## RSVP note
 
